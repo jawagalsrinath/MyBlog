@@ -18,7 +18,12 @@ app.use(cors({credentials:true, origin:'http://localhost:3000'}))
 app.use(express.json())
 app.use(cookieParser())
 app.use('/uploads', express.static(__dirname + '/uploads'));
-mongoose.connect('mongodb+srv://blog:m0dPZxam0GjuwBkf@cluster0.5va9u5l.mongodb.net/?retryWrites=true&w=majority');
+mongoose.connect('mongodb+srv://blog:m0dPZxam0GjuwBkf@cluster0.5va9u5l.mongodb.net/?retryWrites=true&w=majority',{
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("MongoDB connected"))
+.catch(err => console.log("MongoDB connection error:", err));
 
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
@@ -36,20 +41,30 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req,res) => {
     const {username, password} = req.body;
-    const userDoc = await User.findOne({username});
-    const passOk = bcrypt.compareSync(password, userDoc.password);
-    if (passOk){
-      // log
-      jwt.sign({username,id:userDoc._id}, secret, {}, (err,token) => {
-        if (err) throw err;
-        res.cookie('token', token).json({
-          id:userDoc._id,
-          username,
-        }) 
-      });
+    try {
+      const userDoc = await User.findOne({username});
+      if (!userDoc) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const passOk = bcrypt.compareSync(password, userDoc.password);
+      if (passOk){
+        // log
+        jwt.sign({username,id:userDoc._id}, secret, {}, (err,token) => {
+          if (err) throw err;
+          res.cookie('token', token).json({
+            id:userDoc._id,
+            username,
+          }) 
+        });
+      }
+      else{
+        res.status(400).json("wrong credentials");
+      }
     }
-    else{
-      res.status(400).json("wrong credentials");
+    catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
 });
 

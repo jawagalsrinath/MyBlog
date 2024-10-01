@@ -1,23 +1,25 @@
 import { formatISO9075 } from "date-fns";
 import { useContext } from "react";
 import { useState } from "react";
-import { useEffect } from "react";
+import {lazy,  useEffect ,Suspense} from "react";
 import { useParams } from "react-router-dom";
 import { UserContext } from "../UserContext";
 import {Link} from 'react-router-dom';
+
+const Post = lazy(() => import("../post"));
 
 export default function PostPage(){
     const [postInfo, setPostInfo] = useState(null);
     const {userInfo} = useContext(UserContext);
     const {id} = useParams();
     useEffect(() => {
-        fetch(`http://localhost:4000/post/${id}`)
-            .then(response => {
-                response.json().then(postInfo => {
-                    setPostInfo(postInfo);
-                });
-            });
-    }, []);
+        const fetchPost = async () => {
+            const response = await fetch(`http://localhost:4000/post/${id}`);
+            const postInfo = await response.json();
+            setPostInfo(postInfo);
+        };
+        fetchPost();
+    }, [id]);
 
     if (!postInfo) return '';
 
@@ -37,9 +39,11 @@ export default function PostPage(){
                 </div>
             )}
             <div className="image">
-                <img src={`http://localhost:4000/${postInfo.cover}`} alt=""/>
+                <img src={`http://localhost:4000/${postInfo.cover}`} alt="" loading="lazy" />
             </div>
-            <div className="content" dangerouslySetInnerHTML={{__html:postInfo.content}} />
+            <Suspense fallback={<div>Loading post content...</div>}>
+                <div className="content" dangerouslySetInnerHTML={{ __html: postInfo.content }} />
+            </Suspense>
         </div>
     );
 }
