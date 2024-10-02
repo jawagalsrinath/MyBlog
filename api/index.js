@@ -6,19 +6,26 @@ const bcrypt = require('bcryptjs');
 const Post = require('./models/Post');
 const app = express();
 const jwt = require('jsonwebtoken');
-const secret = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpYXQiOjE2ODM1NTI3NDN9.fzn4jJlcESgLqbEIqy9H-hEZ3aNcUDEFbXRMihkONVw';
 const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const uploadMiddleware = multer({dest:'uploads/'});
 const fs = require("fs");
 
 
+const dotenv = require('dotenv');
+dotenv.config();
+
+const secret = process.env.REACT_APP_CONNECTION_SECRET;
+
 const salt = bcrypt.genSaltSync(10);
 app.use(cors({credentials:true, origin:'http://localhost:3000'}))
 app.use(express.json())
 app.use(cookieParser())
 app.use('/uploads', express.static(__dirname + '/uploads'));
-mongoose.connect('mongodb+srv://blog:m0dPZxam0GjuwBkf@cluster0.5va9u5l.mongodb.net/?retryWrites=true&w=majority',{
+
+
+
+mongoose.connect( process.env.REACT_APP_MONGOS_URL,{
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -31,6 +38,7 @@ app.post('/register', async (req, res) => {
       const newUser = await User.create({ 
         username, 
         password:bcrypt.hashSync(password, salt)});
+
       res.json(newUser);
     } catch (error) {
       // Handle error
@@ -167,7 +175,8 @@ app.get('/post/:id', async (req,res) => {
   res.json(postDoc);
 })
 
-app.listen(4000);
+const port = process.env.REACT_APP_PORT;
+app.listen(port, () => console.log(`Server running on port ${port}`))
 
 
  

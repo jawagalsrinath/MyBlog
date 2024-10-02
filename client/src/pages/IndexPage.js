@@ -9,7 +9,7 @@ export default function IndexPage() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await fetch('http://localhost:4000/post');
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/post`);
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
         }
@@ -32,7 +32,6 @@ export default function IndexPage() {
   if (error) {
     return <div>Error: {error}</div>;
   }
-
   return (
     <>
       {posts.length > 0 ? posts.map(post => (

@@ -14,7 +14,7 @@ export default function PostPage(){
     const {id} = useParams();
     useEffect(() => {
         const fetchPost = async () => {
-            const response = await fetch(`http://localhost:4000/post/${id}`);
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/post/${id}`);
             const postInfo = await response.json();
             setPostInfo(postInfo);
         };
@@ -39,7 +39,7 @@ export default function PostPage(){
                 </div>
             )}
             <div className="image">
-                <img src={`http://localhost:4000/${postInfo.cover}`} alt="" loading="lazy" />
+                <img src={`${process.env.REACT_APP_API_URL}/${postInfo.cover}`} alt="" loading="lazy" />
             </div>
             <Suspense fallback={<div>Loading post content...</div>}>
                 <div className="content" dangerouslySetInnerHTML={{ __html: postInfo.content }} />
